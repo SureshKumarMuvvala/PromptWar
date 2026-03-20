@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     LOG_LEVEL: str = "INFO"
-    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
+    ALLOWED_ORIGINS: str = "*"
 
     # ── Google Gemini ────────────────────────────────────────────
     GEMINI_API_KEY: str = Field(..., description="Google Gemini API key")
