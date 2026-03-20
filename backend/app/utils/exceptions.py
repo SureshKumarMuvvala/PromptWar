@@ -43,3 +43,23 @@ class RateLimitExceededError(HTTPException):
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Rate limit exceeded. Please try again later.",
         )
+
+
+class ValidationError(HTTPException):
+    """Raised when input data fails validation (size, type, etc)."""
+
+    def __init__(self, detail: str):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=detail,
+        )
+
+
+class InvalidAPIKeyError(HTTPException):
+    """Raised when an invalid or missing API key is provided."""
+
+    def __init__(self, detail: str = "Invalid or missing API key"):
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=detail,
+        )

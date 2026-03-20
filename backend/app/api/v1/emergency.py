@@ -19,6 +19,7 @@ from app.services.ingestion import IngestionService
 from app.services.structuring import StructuringService
 from app.services.rag_validator import RAGValidator
 from app.services.action_generator import ActionGenerator
+from app.services.google_maps import GoogleMapsService
 from app.utils.exceptions import NoInputProvidedError, GeminiAPIError
 from app.utils.logger import get_logger
 
@@ -30,6 +31,7 @@ router = APIRouter(prefix="/emergency", tags=["Emergency"])
 _gemini_client: Optional[GeminiClient] = None
 _rag_validator: Optional[RAGValidator] = None
 _action_generator = ActionGenerator()
+_maps_service = GoogleMapsService()
 
 
 def get_gemini() -> GeminiClient:
@@ -73,29 +75,16 @@ async def assess_emergency(
     ingestion = IngestionService(gemini)
 
     # ── Step 1: Ingest multimodal input ──────────────────────────
-    audio_bytes = None
-    audio_mime = None
-    image_bytes = None
-    image_mime = None
-
-    if has_audio:
-        audio_bytes = await audio.read()
-        audio_mime = audio.content_type or "audio/webm"
-
-    if has_image:
-        image_bytes = await image.read()
-        image_mime = image.content_type or "image/jpeg"
-
     try:
-        context = await ingestion.process(
+        context = await ingestion.ingest_multimodal(
             text=text,
-            audio_bytes=audio_bytes,
-            audio_mime=audio_mime,
-            image_bytes=image_bytes,
-            image_mime=image_mime,
+            audio=audio,
+            image=image,
         )
     except Exception as e:
         logger.error(f"Ingestion failed: {e}")
+        if "ValidationError" in str(type(e)):
+             raise e
         raise GeminiAPIError(f"Failed to process input: {str(e)}")
 
     # ── Step 2: Structure via Gemini ─────────────────────────────
@@ -112,13 +101,20 @@ async def assess_emergency(
 
     # ── Step 4: Generate actions ─────────────────────────────────
     location = None
+    hospitals = []
     if latitude is not None and longitude is not None:
         location = {"latitude": latitude, "longitude": longitude}
+        # Fetch real hospitals for the assessment response
+        hospitals = await _maps_service.search_nearby_hospitals(
+            lat=latitude, 
+            lng=longitude
+        )
 
     actions = _action_generator.generate(
         assessment=assessment,
         validation=validation,
         location=location,
+        hospitals=hospitals,
     )
 
     return AssessResponse(

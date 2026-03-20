@@ -48,6 +48,13 @@ class Settings(BaseSettings):
     # ── Rate Limiting ────────────────────────────────────────────
     RATE_LIMIT_PER_MINUTE: int = 30
 
+    @property
+    def ALLOWED_ORIGINS_LIST(self) -> list[str]:
+        """Convert comma-separated origins string to a list of stripped strings."""
+        if self.ALLOWED_ORIGINS == "*":
+            return ["*"]
+        return [o.strip() for o in self.ALLOWED_ORIGINS.split(",") if o.strip()]
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

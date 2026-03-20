@@ -33,10 +33,10 @@ export default function ImageUploader({ onImageSelected }) {
   };
 
   return (
-    <div className="card">
+    <section className="card" aria-labelledby="image-upload-title">
       <div className="card__header">
-        <span className="card__icon">📷</span>
-        <h2 className="card__title">Image Upload</h2>
+        <span className="card__icon" role="img" aria-label="Camera icon">📷</span>
+        <h2 className="card__title" id="image-upload-title">Image Upload</h2>
       </div>
 
       {!preview ? (
@@ -47,8 +47,12 @@ export default function ImageUploader({ onImageSelected }) {
           onDragLeave={() => setIsDragOver(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
+          role="button"
+          tabIndex="0"
+          aria-label="Upload an image of the emergency"
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click(); }}
         >
-          <span className="image-uploader__dropzone-icon">🖼️</span>
+          <span className="image-uploader__dropzone-icon" aria-hidden="true">🖼️</span>
           <span className="image-uploader__dropzone-text">
             Drag &amp; drop an image or click to browse
           </span>
@@ -58,16 +62,22 @@ export default function ImageUploader({ onImageSelected }) {
             accept="image/*"
             style={{ display: 'none' }}
             onChange={(e) => handleFile(e.target.files[0])}
+            aria-hidden="true"
           />
         </div>
       ) : (
-        <div className="image-uploader__preview">
-          <img src={preview} alt="Uploaded preview" />
-          <button className="image-uploader__remove" onClick={removeImage} type="button">
+        <div className="image-uploader__preview" role="region" aria-label="Image preview">
+          <img src={preview} alt="Uploaded preview of the emergency" />
+          <button 
+            className="image-uploader__remove" 
+            onClick={removeImage} 
+            type="button"
+            aria-label="Remove image"
+          >
             ✕
           </button>
         </div>
       )}
-    </div>
+    </section>
   );
 }

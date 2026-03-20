@@ -1,125 +1,139 @@
 """
-Google Gemini API wrapper with retry logic and structured output.
+Gemini API client — handles multimodal generation and structured output.
 """
 
+import logging
 import json
-import asyncio
-from typing import Optional
+from typing import Optional, TypeVar, Type
 
 import google.generativeai as genai
-from google.generativeai.types import GenerationConfig
+from pydantic import BaseModel
 
 from app.config import get_settings
 from app.utils.logger import get_logger
+from app.utils.exceptions import GeminiAPIError
 
 logger = get_logger(__name__)
 
+T = TypeVar("T", bound=BaseModel)
+
 
 class GeminiClient:
-    """Async-safe wrapper around the Google Gemini SDK."""
+    """
+    Client for interacting with Google Gemini API models.
+    Supports multimodal inputs including text, audio, and images.
+    """
 
     def __init__(self):
-        settings = get_settings()
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.model = genai.GenerativeModel(settings.GEMINI_MODEL)
-        self.embedding_model = settings.GEMINI_EMBEDDING_MODEL
-        self.max_retries = settings.GEMINI_MAX_RETRIES
-        self.timeout = settings.GEMINI_TIMEOUT
+        """Initializes the Gemini client using settings from config."""
+        self.settings = get_settings()
+        genai.configure(api_key=self.settings.GEMINI_API_KEY)
+        self.model = genai.GenerativeModel(self.settings.GEMINI_MODEL)
+        self.embedding_model = self.settings.GEMINI_EMBEDDING_MODEL
+        self.max_retries = self.settings.GEMINI_MAX_RETRIES
+        self.timeout = self.settings.GEMINI_TIMEOUT
 
-    async def generate_structured(
-        self,
-        prompt: str,
-        parts: Optional[list] = None,
-        response_schema: Optional[dict] = None,
-    ) -> dict:
+    async def generate_structured_response(
+        self, 
+        prompt: str, 
+        response_schema: Type[T]
+    ) -> T:
         """
-        Send a multimodal prompt to Gemini and parse the JSON response.
+        Generate a structured response from Gemini using a Pydantic schema.
 
         Args:
-            prompt: The text prompt / system instruction.
-            parts: Additional content parts (images, audio, etc.).
-            response_schema: If provided, passed to Gemini's structured output mode.
+            prompt: The instruction prompt for Gemini.
+            response_schema: The Pydantic model class to use for validation.
 
         Returns:
-            Parsed JSON dict from Gemini's response.
+            An instance of the response_schema populated with model output.
+
+        Raises:
+            GeminiAPIError: If the model fails to return a valid response.
         """
-        content = [prompt]
-        if parts:
-            content.extend(parts)
-
-        generation_config = GenerationConfig(
-            temperature=0.2,
-            response_mime_type="application/json",
-        )
-
-        for attempt in range(1, self.max_retries + 1):
-            try:
-                logger.info(f"Gemini API call attempt {attempt}/{self.max_retries}")
-                response = await asyncio.to_thread(
-                    self.model.generate_content,
-                    content,
-                    generation_config=generation_config,
+        logger.info(f"Generating structured response (schema: {response_schema.__name__})")
+        
+        try:
+            # We use the 'response_mime_type' and 'response_schema' parameters 
+            # for native structured output if supported by the model version.
+            response = self.model.generate_content(
+                prompt,
+                generation_config=genai.GenerationConfig(
+                    response_mime_type="application/json",
+                    response_schema=response_schema
                 )
-                text = response.text.strip()
-                # Remove markdown code fences if present
-                if text.startswith("```"):
-                    text = text.split("\n", 1)[1]
-                    if text.endswith("```"):
-                        text = text[:-3].strip()
-                return json.loads(text)
-
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse Gemini JSON response: {e}")
-                if attempt == self.max_retries:
-                    raise
-            except Exception as e:
-                logger.error(f"Gemini API error (attempt {attempt}): {e}")
-                if attempt == self.max_retries:
-                    raise
-                await asyncio.sleep(2 ** attempt)
-
-        return {}
-
-    async def embed_text(self, text: str) -> list[float]:
-        """Generate embedding vector for a text string."""
-        result = await asyncio.to_thread(
-            genai.embed_content,
-            model=f"models/{self.embedding_model}",
-            content=text,
-            task_type="retrieval_document",
-        )
-        return result["embedding"]
-
-    async def embed_texts(self, texts: list[str]) -> list[list[float]]:
-        """Generate embeddings for multiple texts."""
-        tasks = [self.embed_text(t) for t in texts]
-        return await asyncio.gather(*tasks)
+            )
+            
+            if not response.text:
+                raise GeminiAPIError("Empty response from Gemini")
+                
+            return response_schema.model_validate_json(response.text)
+            
+        except Exception as e:
+            logger.error(f"Gemini structured generation failed: {e}")
+            raise GeminiAPIError(f"Failed to generate structured response: {str(e)}")
 
     async def transcribe_audio(self, audio_bytes: bytes, mime_type: str) -> str:
-        """Transcribe audio using Gemini's multimodal capability."""
-        prompt = (
-            "Transcribe the following audio recording accurately. "
-            "The audio describes a medical emergency. "
-            "Return ONLY the transcription text, no additional commentary."
-        )
-        audio_part = {"mime_type": mime_type, "data": audio_bytes}
-        response = await asyncio.to_thread(
-            self.model.generate_content,
-            [prompt, audio_part],
-        )
-        return response.text.strip()
+        """
+        Transcribe audio content using Gemini's multimodal capabilities.
+
+        Args:
+            audio_bytes: The raw audio file bytes.
+            mime_type: The MIME type of the audio (e.g., 'audio/wav').
+
+        Returns:
+            The transcribed text.
+        """
+        logger.info(f"Transcribing audio ({len(audio_bytes)} bytes)")
+        try:
+            response = self.model.generate_content([
+                "Please transcribe the following audio recording verbatim.",
+                {"mime_type": mime_type, "data": audio_bytes}
+            ])
+            return response.text
+        except Exception as e:
+            logger.error(f"Audio transcription failed: {e}")
+            raise GeminiAPIError(f"Audio transcription failed: {str(e)}")
 
     async def describe_image(self, image_bytes: bytes, mime_type: str) -> str:
-        """Describe a medical/injury image using Gemini Vision."""
-        prompt = (
-            "You are a medical triage assistant. Describe the medical condition "
-            "visible in this image in clinical terms. Note any visible injuries, "
-            "burns, rashes, swelling, bleeding, or other abnormalities. "
-            "Be specific about location, severity, and approximate size."
-        )
-        image_part = {"mime_type": mime_type, "data": image_bytes}
-        response = await asyncio.to_thread(
-            self.model.generate_content,
-            [prompt, image_part],
-        )
-        return response.text.strip()
+        """
+        Generate a clinical description of an image.
+
+        Args:
+            image_bytes: The raw image bytes.
+            mime_type: The MIME type of the image (e.g., 'image/jpeg').
+
+        Returns:
+            A descriptive text analysis of the image.
+        """
+        logger.info(f"Analyzing image ({len(image_bytes)} bytes)")
+        try:
+            response = self.model.generate_content([
+                "Describe the medical situation shown in this image. Focus on visible injuries, symptoms, or environmental hazards.",
+                {"mime_type": mime_type, "data": image_bytes}
+            ])
+            return response.text
+        except Exception as e:
+            logger.error(f"Image analysis failed: {e}")
+            raise GeminiAPIError(f"Image analysis failed: {str(e)}")
+
+    async def get_embeddings(self, text: str) -> list[float]:
+        """
+        Generate vector embeddings for a given text string.
+
+        Args:
+            text: The input text string.
+
+        Returns:
+            A list of floats representing the embedding vector.
+        """
+        try:
+            result = genai.embed_content(
+                model=self.embedding_model,
+                content=text,
+                task_type="retrieval_document"
+            )
+            return result["embedding"]
+        except Exception as e:
+            logger.error(f"Embedding generation failed: {e}")
+            raise GeminiAPIError(f"Failed to generate embeddings: {str(e)}")

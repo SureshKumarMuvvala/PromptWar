@@ -58,10 +58,10 @@ export default function VoiceRecorder({ onRecordingComplete }) {
   };
 
   return (
-    <div className="card">
+    <section className="card" aria-labelledby="voice-input-title">
       <div className="card__header">
-        <span className="card__icon">🎙️</span>
-        <h2 className="card__title">Voice Input</h2>
+        <span className="card__icon" role="img" aria-label="Microphone icon">🎙️</span>
+        <h2 className="card__title" id="voice-input-title">Voice Input</h2>
       </div>
       <div className="voice-recorder">
         <button
@@ -69,10 +69,12 @@ export default function VoiceRecorder({ onRecordingComplete }) {
           className={`voice-recorder__btn ${isRecording ? 'voice-recorder__btn--recording' : ''}`}
           onClick={isRecording ? stopRecording : startRecording}
           type="button"
+          aria-pressed={isRecording}
+          aria-label={isRecording ? "Stop recording voice" : "Start recording voice"}
         >
           {isRecording ? '⏹ Stop' : '🎤 Record'}
         </button>
-        <span className="voice-recorder__status">
+        <span className="voice-recorder__status" role="status" aria-live="polite">
           {isRecording
             ? `Recording... ${formatDuration(duration)}`
             : hasRecording
@@ -80,6 +82,6 @@ export default function VoiceRecorder({ onRecordingComplete }) {
               : 'Click to start recording'}
         </span>
       </div>
-    </div>
+    </section>
   );
 }

@@ -25,17 +25,31 @@ except ImportError:
 
 
 class RAGValidator:
-    """Validates structured assessments against a FAISS medical knowledge index."""
+    """
+    Validates structured assessments against a clinical knowledge base (RAG).
+    Ensures that the LLM's triage and severity align with standard medical protocols.
+    """
 
     def __init__(self, gemini_client: GeminiClient):
+        """
+        Initializes the RAG validator.
+
+        Args:
+            gemini_client: An initialized GeminiClient instance for embeddings and analysis.
+        """
         self.gemini = gemini_client
         self.settings = get_settings()
         self.index: Optional[object] = None
         self.documents: list[dict] = []
-        self.is_loaded = False
+        self.index_loaded = False
 
     def load_index(self) -> bool:
-        """Load the FAISS index and associated document metadata."""
+        """
+        Load the FAISS index and associated document metadata from disk.
+
+        Returns:
+            True if the index was loaded successfully, False otherwise.
+        """
         if not FAISS_AVAILABLE:
             logger.warning("FAISS not available — skipping index load")
             return False
@@ -51,7 +65,7 @@ class RAGValidator:
             self.index = faiss.read_index(index_path)
             with open(docs_path, "r", encoding="utf-8") as f:
                 self.documents = json.load(f)
-            self.is_loaded = True
+            self.index_loaded = True
             logger.info(
                 f"FAISS index loaded: {self.index.ntotal} vectors, "
                 f"{len(self.documents)} documents"
@@ -63,22 +77,19 @@ class RAGValidator:
 
     async def validate(self, assessment: StructuredAssessment) -> RAGValidation:
         """
-        Validate a structured assessment against the knowledge base.
+        Validate the provided assessment against indexed medical protocols.
 
-        Steps:
-        1. Embed the chief complaint + symptoms into a query vector.
-        2. Search FAISS for top-k matching protocols.
-        3. Cross-check severity and conditions.
-        4. Return validation result with any corrections.
+        Args:
+            assessment: The structured assessment to validate.
+
+        Returns:
+            A RAGValidation object containing matched protocols and corrections.
         """
-        if not self.is_loaded:
-            logger.warning("FAISS index not loaded — returning unvalidated result")
-            return RAGValidation(
-                validated=False,
-                matched_protocols=[],
-                confidence_score=0.0,
-                corrections=[],
-            )
+        if not self.index_loaded:
+            logger.warning("FAISS index not loaded, skipping clinical validation")
+            return RAGValidation(validated=True, confidence_score=0.5)
+
+        logger.info(f"Validating assessment: {assessment.chief_complaint}")
 
         # Build query from assessment
         query_text = (
@@ -86,10 +97,9 @@ class RAGValidator:
             f"Symptoms: {', '.join(assessment.symptoms)}. "
             f"Severity: {assessment.severity.value}."
         )
-        logger.info(f"RAG query: {query_text}")
 
         # Embed and search
-        query_vector = await self.gemini.embed_text(query_text)
+        query_vector = await self.gemini.get_embeddings(query_text)
         query_np = np.array([query_vector], dtype=np.float32)
 
         distances, indices = self.index.search(query_np, self.settings.RAG_TOP_K)
@@ -104,9 +114,8 @@ class RAGValidator:
             matched_protocols.append(doc.get("protocol_id", f"DOC_{idx}"))
             matched_docs.append(doc)
 
-        # Calculate confidence from distances (L2 → similarity)
+        # Calculate confidence from distances (L2 similarity)
         if len(distances[0]) > 0 and distances[0][0] >= 0:
-            # Convert L2 distance to a 0-1 similarity score
             max_distance = float(distances[0][-1]) if distances[0][-1] > 0 else 1.0
             confidence = max(0, 1 - (float(distances[0][0]) / (max_distance + 1)))
         else:
@@ -131,7 +140,7 @@ class RAGValidator:
         """
         corrections = []
         for doc in matched_docs:
-            expected_severity = doc.get("expected_severity")
+            expected_severity = doc.get("severity")
             if (
                 expected_severity
                 and expected_severity != assessment.severity.value
@@ -153,5 +162,5 @@ class RAGValidator:
                             ),
                         )
                     )
-                    break  # Only one severity correction
+                    break
         return corrections

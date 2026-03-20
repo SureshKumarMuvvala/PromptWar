@@ -4,8 +4,10 @@ FastAPI application entry point.
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from app.config import get_settings
 from app.api.v1.router import router as v1_router
@@ -18,6 +20,25 @@ logger = get_logger(__name__)
 
 # ── Track FAISS index state ──────────────────────────────────────────────────
 _faiss_loaded = False
+
+
+class SecureHeadersMiddleware(BaseHTTPMiddleware):
+    """Middleware to add security headers to every response."""
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data: blob:; "
+            "connect-src 'self' http://localhost:8000 http://localhost:3000;"
+        )
+        return response
 
 
 @asynccontextmanager
@@ -74,11 +95,15 @@ def create_app() -> FastAPI:
     origins = [o.strip() for o in settings.ALLOWED_ORIGINS.split(",")]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=origins,
+        allow_origins=settings.ALLOWED_ORIGINS_LIST,
         allow_credentials=True,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["*"],
     )
+    
+    # Add Security Headers (only in production)
+    if not settings.DEBUG:
+        app.add_middleware(SecureHeadersMiddleware)
 
     # ── Routes ───────────────────────────────────────────────────
     app.include_router(v1_router)

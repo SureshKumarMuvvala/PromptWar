@@ -18,7 +18,10 @@ logger = get_logger(__name__)
 
 
 class ActionGenerator:
-    """Rule-based engine that generates emergency actions from assessments."""
+    """
+    Rule-based engine that generates prioritized emergency actions
+    based on clinical severity and RAG validations.
+    """
 
     def generate(
         self,
@@ -30,11 +33,14 @@ class ActionGenerator:
         """
         Generate a prioritized list of recommended actions.
 
-        The severity level drives the primary action set:
-        - CRITICAL → ambulance + first aid + hospital
-        - HIGH     → hospital + first aid + follow-up
-        - MODERATE → hospital suggestion + self-care
-        - LOW      → self-care + follow-up
+        Args:
+            assessment: The structured clinical assessment.
+            validation: Optional validation results from RAG.
+            location: Optional user coordinates for hospital search.
+            hospitals: Optional list of actual nearby hospitals.
+
+        Returns:
+            A list of RecommendedAction objects ordered by priority.
         """
         # Apply any RAG corrections to severity
         effective_severity = assessment.severity

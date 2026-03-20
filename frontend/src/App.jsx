@@ -70,9 +70,13 @@ export default function App() {
     <div className="app">
       <Navbar isOnline={isOnline} />
 
-      {error && <div className="error-banner">⚠️ {error}</div>}
+      {error && (
+        <div className="error-banner" role="alert" aria-live="assertive">
+          ⚠️ {error}
+        </div>
+      )}
 
-      <div className="main-grid">
+      <main className="main-grid">
         {/* ── Left: Input Panel ──────────────────────────────── */}
         <div className="input-section">
           <TextInput value={text} onChange={setText} />
@@ -84,17 +88,19 @@ export default function App() {
             className={`submit-btn ${loading ? 'submit-btn--loading' : ''}`}
             onClick={handleSubmit}
             disabled={!hasInput || loading}
+            aria-busy={loading}
+            aria-label={loading ? "Analyzing your emergency information" : "Assess Emergency"}
           >
-            {loading && <span className="submit-btn__spinner" />}
+            {loading && <span className="submit-btn__spinner" aria-hidden="true" />}
             {loading ? 'Analyzing Emergency...' : '🚨 Assess Emergency'}
           </button>
         </div>
 
         {/* ── Right: Results Panel ───────────────────────────── */}
-        <div>
+        <div aria-live="polite">
           <ActionPanel result={result} />
         </div>
-      </div>
+      </main>
     </div>
   );
 }
