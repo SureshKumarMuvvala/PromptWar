@@ -1,0 +1,102 @@
+[
+  {
+    "protocol_id": "ACS_PROTOCOL_001",
+    "title": "Acute Coronary Syndrome (ACS) Protocol",
+    "description": "Emergency protocol for suspected heart attack, angina, or acute coronary events.",
+    "symptoms": ["chest_pain", "radiating_pain_left_arm", "diaphoresis", "shortness_of_breath", "nausea", "jaw_pain"],
+    "expected_severity": "CRITICAL",
+    "triage_level": "RED",
+    "protocol": "Administer aspirin 325mg (chew). Obtain 12-lead ECG within 10 minutes. Initiate IV access. Administer supplemental O2 if SpO2 < 94%. Activate cardiac catheterization lab if STEMI confirmed.",
+    "correction_reason": "Chest pain with radiation and diaphoresis warrants CRITICAL severity per ACS protocol."
+  },
+  {
+    "protocol_id": "STROKE_PROTOCOL_002",
+    "title": "Stroke (CVA) Protocol",
+    "description": "Emergency protocol for suspected stroke — FAST assessment.",
+    "symptoms": ["face_drooping", "arm_weakness", "speech_difficulty", "sudden_confusion", "vision_loss", "severe_headache", "loss_of_balance"],
+    "expected_severity": "CRITICAL",
+    "triage_level": "RED",
+    "protocol": "Note symptom onset time. Perform FAST assessment. CT scan within 25 minutes of arrival. tPA within 3-4.5 hours of onset if eligible. Monitor airway and oxygenation.",
+    "correction_reason": "Acute stroke symptoms require CRITICAL severity − time-critical window for thrombolysis."
+  },
+  {
+    "protocol_id": "ANAPHYLAXIS_003",
+    "title": "Anaphylaxis Protocol",
+    "description": "Emergency protocol for severe allergic reactions.",
+    "symptoms": ["skin_rash", "swelling", "difficulty_breathing", "wheezing", "throat_tightness", "rapid_pulse", "dizziness", "nausea"],
+    "expected_severity": "CRITICAL",
+    "triage_level": "RED",
+    "protocol": "Administer epinephrine IM 0.3-0.5mg (adults). Position patient supine with legs elevated. Establish IV access. Administer H1/H2 antihistamines. Prepare for potential intubation.",
+    "correction_reason": "Anaphylaxis is a CRITICAL emergency requiring immediate epinephrine administration."
+  },
+  {
+    "protocol_id": "TRAUMA_PROTOCOL_004",
+    "title": "Major Trauma Protocol",
+    "description": "Emergency protocol for significant traumatic injuries.",
+    "symptoms": ["severe_bleeding", "fracture", "head_injury", "loss_of_consciousness", "penetrating_wound", "crush_injury"],
+    "expected_severity": "CRITICAL",
+    "triage_level": "RED",
+    "protocol": "Primary survey: ABCDE approach. Control hemorrhage with direct pressure/tourniquet. Immobilize C-spine if mechanism suggests. Establish large-bore IV access. Prepare for surgical intervention.",
+    "correction_reason": "Major trauma with hemorrhage or altered consciousness requires CRITICAL severity."
+  },
+  {
+    "protocol_id": "BURN_PROTOCOL_005",
+    "title": "Severe Burn Protocol",
+    "description": "Emergency protocol for significant burn injuries.",
+    "symptoms": ["burn_injury", "skin_blistering", "charred_skin", "pain", "swelling"],
+    "expected_severity": "HIGH",
+    "triage_level": "ORANGE",
+    "protocol": "Cool burn under running water for 20 minutes. Cover with clean non-adherent dressing. Calculate TBSA using Rule of Nines. Initiate fluid resuscitation per Parkland formula for >15% TBSA. Manage pain with IV morphine.",
+    "correction_reason": "Burns >10% TBSA or involving face/hands/genitalia warrant HIGH severity per ATLS."
+  },
+  {
+    "protocol_id": "CHEST_PAIN_TRIAGE_006",
+    "title": "Chest Pain Triage Guidelines",
+    "description": "General triage guidelines for patients presenting with chest pain.",
+    "symptoms": ["chest_pain", "chest_tightness", "chest_pressure"],
+    "expected_severity": "HIGH",
+    "triage_level": "ORANGE",
+    "protocol": "Obtain vital signs including SpO2. 12-lead ECG within 10 minutes. Troponin level. Chest X-ray. Assess for PE, pneumothorax, aortic dissection. Risk stratify using HEART score.",
+    "correction_reason": "All chest pain presentations should be at least HIGH severity until cardiac cause is excluded."
+  },
+  {
+    "protocol_id": "RESPIRATORY_007",
+    "title": "Acute Respiratory Distress Protocol",
+    "description": "Emergency protocol for breathing difficulties.",
+    "symptoms": ["shortness_of_breath", "wheezing", "rapid_breathing", "cyanosis", "accessory_muscle_use", "inability_to_speak_full_sentences"],
+    "expected_severity": "HIGH",
+    "triage_level": "ORANGE",
+    "protocol": "Assess SpO2 and respiratory rate. Position upright. Administer supplemental O2 to maintain SpO2 > 94%. Nebulized bronchodilators for bronchospasm. Prepare for non-invasive ventilation or intubation.",
+    "correction_reason": "Acute respiratory distress with SpO2 < 92% or inability to speak warrants HIGH severity."
+  },
+  {
+    "protocol_id": "FRACTURE_008",
+    "title": "Fracture Management Protocol",
+    "description": "Protocol for managing suspected bone fractures.",
+    "symptoms": ["limb_pain", "deformity", "swelling", "inability_to_bear_weight", "crepitus", "bruising"],
+    "expected_severity": "MODERATE",
+    "triage_level": "YELLOW",
+    "protocol": "Immobilize in position found. Apply ice and elevation. Assess neurovascular status (5 Ps). X-ray. Closed reduction or surgical referral as needed. Pain management with NSAIDs or opioids.",
+    "correction_reason": "Open fractures or fractures with neurovascular compromise require upgrade to HIGH severity."
+  },
+  {
+    "protocol_id": "ABDOMINAL_PAIN_009",
+    "title": "Acute Abdominal Pain Protocol",
+    "description": "Triage protocol for acute abdominal presentations.",
+    "symptoms": ["abdominal_pain", "nausea", "vomiting", "fever", "abdominal_rigidity", "rebound_tenderness"],
+    "expected_severity": "MODERATE",
+    "triage_level": "YELLOW",
+    "protocol": "Assess vitals and pain characteristics. NPO status. Labs: CBC, BMP, lipase, urinalysis, pregnancy test. CT abdomen if indicated. Surgical consult for acute abdomen signs.",
+    "correction_reason": "Abdominal pain with rigidity or hemodynamic instability warrants upgrade to HIGH/CRITICAL."
+  },
+  {
+    "protocol_id": "MINOR_WOUND_010",
+    "title": "Minor Wound Care Protocol",
+    "description": "Guidelines for minor cuts, abrasions, and superficial wounds.",
+    "symptoms": ["minor_cut", "abrasion", "superficial_wound", "minor_bleeding"],
+    "expected_severity": "LOW",
+    "triage_level": "GREEN",
+    "protocol": "Clean wound with saline or clean water. Apply antiseptic. Cover with appropriate dressing. Assess tetanus immunization status. Educate on signs of infection.",
+    "correction_reason": "Minor wounds are LOW severity unless signs of significant infection are present."
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "protocol_id": "TRIAGE_RED_001",
+    "title": "RED Triage — Immediate",
+    "description": "Conditions requiring immediate life-saving intervention.",
+    "symptoms": ["cardiac_arrest", "respiratory_failure", "massive_hemorrhage", "anaphylaxis", "status_epilepticus", "severe_sepsis"],
+    "expected_severity": "CRITICAL",
+    "triage_level": "RED",
+    "content": "RED triage: Life-threatening conditions. Airway compromise, breathing failure, circulatory shock, unresponsiveness, major burns >30% TBSA, active seizures, severe chest pain with hemodynamic instability."
+  },
+  {
+    "protocol_id": "TRIAGE_ORANGE_002",
+    "title": "ORANGE Triage — Very Urgent",
+    "description": "Conditions requiring very urgent attention within 10 minutes.",
+    "symptoms": ["high_fever", "severe_pain", "acute_neurological_deficit", "significant_bleeding", "chemical_exposure"],
+    "expected_severity": "HIGH",
+    "triage_level": "ORANGE",
+    "content": "ORANGE triage: Very urgent. Severe pain (>7/10), high-risk chest pain, acute abdominal pain with rigidity, temperature >41°C, acute confusion, significant mechanism of injury."
+  },
+  {
+    "protocol_id": "TRIAGE_YELLOW_003",
+    "title": "YELLOW Triage — Urgent",
+    "description": "Conditions requiring urgent attention within 30-60 minutes.",
+    "symptoms": ["moderate_pain", "persistent_vomiting", "moderate_fever", "minor_head_injury", "suspected_fracture"],
+    "expected_severity": "MODERATE",
+    "triage_level": "YELLOW",
+    "content": "YELLOW triage: Urgent. Moderate pain (4-7/10), moderate fever (38.5-41°C), persistent vomiting/diarrhea, suspected uncomplicated fractures, lacerations requiring sutures."
+  },
+  {
+    "protocol_id": "TRIAGE_GREEN_004",
+    "title": "GREEN Triage — Standard",
+    "description": "Conditions that can wait for standard care.",
+    "symptoms": ["mild_pain", "minor_injury", "stable_chronic_condition", "mild_infection"],
+    "expected_severity": "LOW",
+    "triage_level": "GREEN",
+    "content": "GREEN triage: Standard. Minor injuries, mild pain (<4/10), chronic stable conditions, minor infections, medication refills, minor allergic reactions without systemic symptoms."
+  },
+  {
+    "protocol_id": "TRIAGE_BLUE_005",
+    "title": "BLUE Triage — Non-Urgent",
+    "description": "Conditions appropriate for primary care.",
+    "symptoms": ["chronic_symptoms", "follow_up_care", "administrative_needs"],
+    "expected_severity": "LOW",
+    "triage_level": "BLUE",
+    "content": "BLUE triage: Non-urgent. Chronic stable conditions, follow-up visits, dressing changes, suture removals, prescription renewals, non-emergency referrals."
+  }
+]

@@ -1,0 +1,31 @@
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Node
+node_modules/
+dist/
+.cache/
+*.log
+
+# Docker
+.dockerignore
+
+# FAISS index (rebuilt)
+backend/app/rag/faiss_index/
+
+# OS
+.DS_Store
+Thumbs.db
