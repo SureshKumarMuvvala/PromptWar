@@ -31,12 +31,20 @@ async def lifespan(app: FastAPI):
         gemini = GeminiClient()
         rag = RAGValidator(gemini)
         _faiss_loaded = rag.load_index()
+        
+        if not _faiss_loaded:
+            logger.info("FAISS index not found. Building index...")
+            from app.rag.indexer import build_index
+            await build_index()
+            # Attempt to reload after building
+            _faiss_loaded = rag.load_index()
+
         if _faiss_loaded:
             logger.info("FAISS index loaded successfully at startup")
         else:
             logger.warning("FAISS index not available — RAG validation will be degraded")
     except Exception as e:
-        logger.error(f"Failed to load FAISS index: {e}")
+        logger.error(f"Failed to load/build FAISS index: {e}")
         _faiss_loaded = False
 
     yield
