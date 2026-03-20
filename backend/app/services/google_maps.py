@@ -51,16 +51,19 @@ class GoogleMapsService:
 
                 hospitals = []
                 for result in data.get("results", []):
+                    geometry = result.get("geometry", {})
+                    location = geometry.get("location", {})
+                    
                     hospitals.append(HospitalInfo(
-                        name=result.get("name"),
+                        name=result.get("name", "Unknown Hospital"),
                         address=result.get("vicinity"),
-                        distance_km=None,  # Requires Distance Matrix API for accuracy
+                        distance_km=None,
                         rating=result.get("rating"),
                         location={
-                            "lat": result["geometry"]["location"]["lat"],
-                            "lng": result["geometry"]["location"]["lng"]
-                        },
-                        has_emergency=True  # Assumption for hospital type
+                            "lat": location.get("lat"),
+                            "lng": location.get("lng")
+                        } if location else None,
+                        has_emergency=True
                     ))
                 
                 return hospitals[:5]  # Return top 5

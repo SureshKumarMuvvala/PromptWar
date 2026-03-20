@@ -40,7 +40,7 @@ class StructuredAssessment(BaseModel):
     triage_level: TriageLevel = TriageLevel.YELLOW
     possible_conditions: list[PossibleCondition] = Field(default_factory=list)
     vital_signs_mentioned: Optional[VitalSignsMentioned] = None
-    patient_age: int | str | None = None
+    patient_age: Optional[str] = None
     patient_gender: Optional[str] = None
     additional_context: Optional[str] = None
 
