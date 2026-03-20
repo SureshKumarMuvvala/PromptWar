@@ -110,6 +110,7 @@ class AssessResponse(BaseModel):
     structured_assessment: StructuredAssessment
     rag_validation: RAGValidation
     recommended_actions: list[RecommendedAction] = Field(default_factory=list)
+    debug_info: Optional[dict] = None  # Raw prompts, response times, model version
 
 
 class ValidateResponse(BaseModel):

@@ -171,6 +171,28 @@ export default function ActionPanel({ result }) {
           </div>
         </section>
       )}
+
+      {/* ── Developer Details (AI Studio Integration) ───────── */}
+      {result.debug_info && (
+        <section className="card card--debug" aria-labelledby="debug-title">
+          <div className="card__header">
+            <span className="card__icon" role="img" aria-label="Microchip icon">🚀</span>
+            <h2 className="card__title" id="debug-title">Developer Details (AI Studio Mode)</h2>
+          </div>
+          <div className="debug-section">
+            <div className="debug-meta">
+              <span className="debug-badge">Latency: {result.debug_info.latency_ms}ms</span>
+              <span className="debug-badge">Model: {result.debug_info.model}</span>
+            </div>
+            <div className="debug-prompt">
+              <p className="section-label">Raw System Prompt</p>
+              <pre className="code-block">
+                <code>{result.debug_info.prompt}</code>
+              </pre>
+            </div>
+          </div>
+        </section>
+      )}
     </article>
   );
 }

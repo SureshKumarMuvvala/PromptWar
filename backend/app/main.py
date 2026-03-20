@@ -41,6 +41,16 @@ class SecureHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class CloudTraceMiddleware(BaseHTTPMiddleware):
+    """Middleware to propagate X-Cloud-Trace-Context for Google Cloud Console."""
+    async def dispatch(self, request: Request, call_next):
+        trace_header = request.headers.get("X-Cloud-Trace-Context")
+        response = await call_next(request)
+        if trace_header:
+            response.headers["X-Cloud-Trace-Context"] = trace_header
+        return response
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup/shutdown lifecycle."""
@@ -101,6 +111,9 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     
+    # Add Cloud Trace Middleware
+    app.add_middleware(CloudTraceMiddleware)
+
     # Add Security Headers (only in production)
     if not settings.DEBUG:
         app.add_middleware(SecureHeadersMiddleware)

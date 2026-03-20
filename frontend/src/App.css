@@ -97,6 +97,51 @@ body {
   border-width: 0;
 }
 
+/* ── Debug / Developer Details ─────────────────────────── */
+.card--debug {
+  border: 1px dashed var(--accent-secondary);
+  background: rgba(45, 212, 191, 0.03);
+}
+
+.debug-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.debug-meta {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.debug-badge {
+  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  background: var(--bg-secondary);
+  color: var(--accent-secondary);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(45, 212, 191, 0.2);
+}
+
+.code-block {
+  background: #0f172a;
+  color: #94a3b8;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin: 0;
+}
+
+.code-block code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 /* ── Navbar ──────────────────────────────────────────────────────────────── */
 
 .navbar {

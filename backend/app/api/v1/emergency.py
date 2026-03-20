@@ -2,6 +2,7 @@
 Emergency assessment API routes.
 """
 
+import time
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
@@ -20,8 +21,11 @@ from app.services.structuring import StructuringService
 from app.services.rag_validator import RAGValidator
 from app.services.action_generator import ActionGenerator
 from app.services.google_maps import GoogleMapsService
+from app.services.monitoring import monitor
+from app.services.structuring import STRUCTURING_PROMPT
 from app.utils.exceptions import NoInputProvidedError, GeminiAPIError
 from app.utils.logger import get_logger
+from app.config import get_settings
 
 logger = get_logger(__name__)
 
@@ -64,6 +68,8 @@ async def assess_emergency(
     Accept multimodal emergency input and return a structured, validated
     triage assessment with recommended actions.
     """
+    start_time = time.time()
+    settings = get_settings()
     # Validate at least one input is provided
     has_text = text and text.strip()
     has_audio = audio and audio.filename
@@ -117,12 +123,31 @@ async def assess_emergency(
         hospitals=hospitals,
     )
 
-    return AssessResponse(
+    # ── Step 5: Monitoring & Debug ───────────────────────────────
+    latency_ms = (time.time() - start_time) * 1000
+    
+    response = AssessResponse(
         input_summary=context["unified_text"][:500],
         structured_assessment=assessment,
         rag_validation=validation,
         recommended_actions=actions,
     )
+
+    if settings.DEBUG:
+        response.debug_info = {
+            "prompt": STRUCTURING_PROMPT.format(context=context["unified_text"]),
+            "latency_ms": round(latency_ms, 2),
+            "model": settings.GEMINI_MODEL,
+        }
+
+    monitor.log_assessment_telemetry(
+        request_id=response.request_id,
+        latency_ms=latency_ms,
+        confidence=validation.confidence_score,
+        severity=assessment.severity.value
+    )
+
+    return response
 
 
 # ── POST /emergency/validate ────────────────────────────────────────────────
