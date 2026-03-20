@@ -54,3 +54,6 @@ steps:
 images:
   - 'gcr.io/$PROJECT_ID/eha-backend'
   - 'gcr.io/$PROJECT_ID/eha-frontend'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
